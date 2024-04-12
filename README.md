@@ -98,3 +98,65 @@ vector = cv.fit_transform(new_df['tags']).toarray()
 ## Display the shape of the final vectorized representation
 print("Vector shape:", vector.shape)
 print("Top 10 feature names:", cv.get_feature_names_out()[:10])
+
+import nltk
+from nltk.stem.porter import PorterStemmer
+from sklearn.metrics.pairwise import cosine_similarity
+import pickle
+
+## Initialize NLTK (Natural Language Toolkit) for stemming
+nltk.download('punkt')  # Download necessary NLTK data (if not already downloaded)
+
+## Initialize Porter Stemmer for word stemming
+ps = PorterStemmer()
+
+## Define a stemming function to reduce words to their base (stem) forms
+def stemming(text):
+    stemmed_words = []
+    for word in text.split():  # Convert string to list of words
+        stemmed_words.append(ps.stem(word))  # Apply stemming to each word
+    return " ".join(stemmed_words)  # Convert list of stemmed words back to string
+
+## Apply stemming to the 'tags' column of the DataFrame
+new_df['tags'] = new_df['tags'].apply(stemming)
+
+## Display the stemmed tags for the first movie
+print("Stemmed tags for the first movie:")
+print(new_df['tags'][0])
+
+## Compute cosine similarity between the vectorized tag representations
+similarity = cosine_similarity(vector)
+
+## Display the shape (dimensions) of the similarity matrix
+print("Shape of similarity matrix:", similarity.shape)
+
+## Define a function to recommend similar movies based on cosine similarity
+def recommend(movie):
+    movie_index = new_df[new_df['title'] == movie].index[0]  # Get the index of the input movie
+    distances = similarity[movie_index]  # Retrieve cosine similarity scores for the input movie
+    # Find indices and similarity scores for top 5 most similar movies (excluding the input movie itself)
+    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
+    # Print titles of recommended movies
+    print("Recommended movies for", movie, ":")
+    for index, _ in movie_list:
+        print(new_df.iloc[index].title)
+
+## Example of using the recommend function to suggest movies similar to 'Harry Potter and the Chamber of Secrets'
+recommend('Harry Potter and the Chamber of Secrets')
+
+## Remove last 3 rows from the DataFrame (optional step)
+new_df = new_df[:-3]
+
+## Convert DataFrame to a dictionary
+movies_dict = new_df.to_dict()
+
+## Save the DataFrame dictionary to a pickle file
+pickle.dump(movies_dict, open('movies_dict.pkl', 'wb'))
+
+## Save the cosine similarity matrix to a pickle file
+pickle.dump(similarity, open('similarity.pkl', 'wb'))
+
+## Example: Retrieve the index of 'Harry Potter and the Chamber of Secrets' in the DataFrame
+hp_index = new_df[new_df['title'] == 'Harry Potter and the Chamber of Secrets'].index
+print("Index of 'Harry Potter and the Chamber of Secrets' in DataFrame:", hp_index)
+
