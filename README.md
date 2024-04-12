@@ -6,7 +6,7 @@ import pandas as pd
 import ast
 from sklearn.feature_extraction.text import CountVectorizer
 
-# Load movie data from CSV files
+## Load movie data from CSV files
 movies = pd.read_csv('tmdb_5000_movies.csv')
 credits = pd.read_csv('tmdb_5000_credits.csv')
 
